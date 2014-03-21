@@ -1,8 +1,8 @@
 #include<stdio.h>
 #include<omp.h>
-static long num_steps = 10000000;
+static long num_steps = 100000000;
 double step;
-# define NUM_THREADS 2
+# define NUM_THREADS 4
 int main()
 {
 	// Time calculation
@@ -32,6 +32,7 @@ int main()
 	//	sum[rank] = sum[rank] + 4.0/(1.0+x*x);
 		temp = temp + 4.0/(1.0+x*x);
 	}
+	#pragma omp critical
 	sum[rank] = temp;
 	}
 	double tot_sum = 0.0;
