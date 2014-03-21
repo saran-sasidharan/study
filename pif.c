@@ -4,14 +4,33 @@ static long num_steps = 100000;
 double step;
 int main()
 {
-	int i; double x,pi,sum = 0.0;
+	// Time calculation
+	double t1,t2,t;
+	t1 = omp_get_wtime();
+
+	// Splitting program to different threads
+	int tot_threads = omp_get_num_threads();
+	long new_steps = num_steps/tot_threads; // assuming even threads always, preferably 4
+
+	int i; double pi; double sum[tot_threads] = {0.0};
 	
 	step = 1.0/(double)num_steps;
 
-	for(i=0;i<num_steps;i++){
-		x = (i+0.5)*step;
-		sum = sum + 4.0/(1.0+x*x);
+	#pragma omp parallel
+	{
+	double x;
+	int rank = omp_get_thread_num();
+	for(i=0;i<new_steps;i++){
+		x = ((i+rank*new_steps)+0.5)*step;
+		sum[rank] = sum[rank] + 4.0/(1.0+x*x);
 	}
-	pi = step*sum;
-	printf("Pi is %d \n",pi);
+	}
+	double tot_sum = 0.0;
+	for(i=0;i<tot_threads;i++){
+		tot_sum = tot_sum + sum[i];
+	}
+	pi = step*tot_sum;
+	t2 = omp_get_wtime();
+	t = t2-t1;
+	printf("Pi is %f, calculated in %f seconds \n",pi,t);
 }
